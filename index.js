@@ -1,32 +1,37 @@
+const express = require('express')
+const app = express()
+
 const {initializeDatabase}  = require('./db/db.connect')
 const Movie = require('./models/moves.models')
 
+app.use(express.json())
+
 initializeDatabase()
 
-const newMovie = {
-    title: "New Movie",
-    releaseYear: 2023,
-    genre: ["Drama"],
-    director: "Aditya Roy Chopra",
-    actors: ["Actor1", "Actor2"],
-    language: "Hindi",
-    country: "India",
-    rating: 6.1,
-    plot: "A young man and woman fall in love on a Austria trip.",
-    awards: "IIFA Filmfare Awards",
-    posterUrl: "https://example.com/new-poster1.jpg",
-    trailerUrl: "https://example.com/new-trailer1.mp4",
-}
+// const newMovie = {
+//     title: "New Movie",
+//     releaseYear: 2023,
+//     genre: ["Drama"],
+//     director: "Aditya Roy Chopra",
+//     actors: ["Actor1", "Actor2"],
+//     language: "Hindi",
+//     country: "India",
+//     rating: 6.1,
+//     plot: "A young man and woman fall in love on a Austria trip.",
+//     awards: "IIFA Filmfare Awards",
+//     posterUrl: "https://example.com/new-poster1.jpg",
+//     trailerUrl: "https://example.com/new-trailer1.mp4",
+// }
 
-async function createMovie(newMovie) {
-    try{
-        const movie = new Movie(newMovie)
-        const saveMovie = await movie.save()
-        console.log("New Movie Data.", saveMovie)
-    }catch (error){
-        throw error
-    }
-}
+// async function createMovie(newMovie) {
+//     try{
+//         const movie = new Movie(newMovie)
+//         const saveMovie = await movie.save()
+//         console.log("New Movie Data.", saveMovie)
+//     }catch (error){
+//         throw error
+//     }
+// }
 
 // createMovie(newMovie)
 
@@ -35,40 +40,94 @@ async function createMovie(newMovie) {
 async function readMovieByTitle(movieTitle) {
     try{
         const movie = await Movie.findOne({title: movieTitle})
-        console.log(movie)
+        return movie
     }catch (error){
         throw error
     }
 }
 
-// readMovieByTitle("Dilwale Dulhania Le Jayenge")
-// readMovieByTitle("Lagaan")
+app.get("/movies/:title", async(req, res) => {
+    try{
+        const movie = await readMovieByTitle(req.params.title)
+        if(movie){
+            res.json(movie)
+        }else{
+            res.status(404).json({error: "Movie not found."})
+        }
+    }catch(error){
+        res.status(500).json({error: "Failed to fetch movie."})
+    }
+})
 
 // to get all the movies in the database
 
 async function readAllMovies(){
     try{
         const allMovies = await Movie.find()
-        console.log(allMovies)
+        return allMovies
     }catch(error){
         console.log(error)
     }
 }
 
-// readAllMovies()
+app.get("/movies", async (req, res) => {
+    try{
+        const movies = await readAllMovies()
+        if(movies.length !== 0){
+            res.json(movies)
+        }else{
+            res.status(404).json({error: "No movies found."})
+        }
+    }catch(error){
+        res.status(500).json({error: "Failed to fetch movies."})
+    }
+})
 
 // get movie by director name
 
 async function readMovieByDirector(directorName){
     try{
         const movieByDirector = await Movie.find({director: directorName})
-        console.log(movieByDirector)
+        return movieByDirector
     }catch(error){
         console.log(error)
     }
 }
 
-// readMovieByDirector("Kabir Khan")
+app.get("/movies/director/:directorName", async(req, res) => {
+    try{
+        const movies = await readMovieByDirector(req.params.directorName)
+        if(movies.length != 0){
+            res.json(movies)
+        }else{
+            res.status(404).json({error: "No movies found."})
+        }
+    }catch(error){
+        res.status(500).json({error: "failed to fetch movies."})
+    }
+})
+
+async function readMovieByGenre(genreName) {
+    try{
+        const movieByGenre = await Movie.find({genre: genreName})
+        return movieByGenre
+    }catch(error){
+        console.log(error)
+    }
+}
+
+app.get("/movies/genres/:genreName", async(req, res) => {
+    try{
+        const movies = await readMovieByGenre(req.params.genreName)
+        if(movies.length != 0){
+            res.json(movies)
+        }else{
+            res.status(404).json({error: "Movies not found."})
+        }
+    }catch(error){
+        res.status(500).json({error: "Failed to fetch movies."})
+    }
+})
 
 // find movie by id and update it's rating and release year
 
@@ -122,3 +181,9 @@ async function deleteMovieFromDb(movieTitle){
 }
 
 // deleteMovieFromDb("3 Idiots")
+
+const PORT = 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}.`)
+})
