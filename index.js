@@ -8,32 +8,26 @@ app.use(express.json())
 
 initializeDatabase()
 
-// const newMovie = {
-//     title: "New Movie",
-//     releaseYear: 2023,
-//     genre: ["Drama"],
-//     director: "Aditya Roy Chopra",
-//     actors: ["Actor1", "Actor2"],
-//     language: "Hindi",
-//     country: "India",
-//     rating: 6.1,
-//     plot: "A young man and woman fall in love on a Austria trip.",
-//     awards: "IIFA Filmfare Awards",
-//     posterUrl: "https://example.com/new-poster1.jpg",
-//     trailerUrl: "https://example.com/new-trailer1.mp4",
-// }
+async function createMovie(newMovie) {
+    try{
+        const movie = new Movie(newMovie)
+        const saveMovie = await movie.save()
+        // console.log("New Movie Data.", saveMovie)
+        return saveMovie
+    }catch (error){
+        throw error
+    }
+}
 
-// async function createMovie(newMovie) {
-//     try{
-//         const movie = new Movie(newMovie)
-//         const saveMovie = await movie.save()
-//         console.log("New Movie Data.", saveMovie)
-//     }catch (error){
-//         throw error
-//     }
-// }
+app.post("/movies", async(req, res) => {
+    try{
+        const savedMovie = await createMovie(req.body)
+        res.status(201).json({message: "Movie added successfully.", movie: savedMovie })
+    }catch(error){
+        res.status(500).json({error: "Failed to add movie."})
+    }
+})
 
-// createMovie(newMovie)
 
 // find a movie with a particular title
 
