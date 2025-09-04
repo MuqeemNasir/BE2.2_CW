@@ -157,11 +157,23 @@ async function updateMovieDetail(movieTitle, dataToUpdate) {
 async function deleteMovie(movieId){
     try{
         const deleteMovie = await Movie.findByIdAndDelete(movieId)
-        console.log(deleteMovie )
+        // console.log(deleteMovie )
+        return deleteMovie
     }catch(error){
         console.log("Error in Deleting Movie", error)
     }
 }
+
+app.delete("/movies/:movieId", async(req, res) => {
+    try{
+        const deletedMovie = await deleteMovie(req.params.movieId)
+        if(deletedMovie){
+            res.status(200).json({message: "Movie deleted successfully."})
+        }
+    }catch(error){
+        res.status(500).json({error: "Failed to delete movie."})
+    }
+})
 
 // deleteMovie("68a77076dcf3758d827c3faa")
 
